@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: master character sprite for the Agent Buddy ESP32 AMOLED animation system
+Primary request: Create a clean, isolated front-facing neutral pose of Scout, faithfully based on the provided concept sheet. Scout is a small friendly warm brown-and-white puppy with a slightly oversized head, central white forehead stripe continuing down the muzzle, large expressive dark-brown eyes, soft floppy brown ears, rounded black nose, compact seated body, small paws, red collar, and a circular metallic tag with an unmistakable illuminated cyan-blue paw-print symbol.
+Input image: use the supplied Scout concept sheet as the primary identity, proportion, material, and color reference.
+Scene/backdrop: pure solid black (#000000), no floor, no scenery, no cast shadow outside the silhouette.
+Style/medium: polished soft 3D character render, high-end animated-film quality, optimized for readability on a small AMOLED display.
+Composition/framing: single character only, front-facing, centered, entire character visible with generous black margin, symmetrical neutral happy/curious expression, eye line level, no cropping.
+Lighting/mood: soft studio key light with restrained warm rim light; high contrast against black; preserve readable fur edges.
+Constraints: preserve the exact red collar and glowing blue paw-print tag; stable clean silhouette; no text, labels, numbers, grids, borders, UI chrome, watermark, accessories, or extra objects. Do not imitate or reference any copyrighted character.

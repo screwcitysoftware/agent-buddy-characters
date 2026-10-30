@@ -1,0 +1,8 @@
+{
+  "description": "A warm brown-and-white puppy with floppy ears, a red collar, and a glowing blue paw-print tag.",
+  "preview": "assets/generated/scout-contact-sheet.png",
+  "artworkLicense": "CC-BY-4.0",
+  "minimumAgentBuddyVersion": "0.16.2",
+  "testedAgentBuddyVersion": "0.16.2",
+  "status": "stable"
+}

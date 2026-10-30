@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Download open Agent Buddy character packs from Screw City Software.">
+  <title>Agent Buddy Characters · Screw City Software</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero__content">
+      <p class="eyebrow">Screw City Software presents</p>
+      <h1>Characters for your Agent Buddy</h1>
+      <p class="lede">Original, reproducibly built character packs for the Agent Buddy desktop companion and supported devices.</p>
+      <a class="source-link" href="https://github.com/ScrewCitySoftware/agent-buddy-characters">View the source on GitHub</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="gallery" aria-labelledby="gallery-title">
+      <div class="section-heading">
+        <p class="eyebrow">Character gallery</p>
+        <h2 id="gallery-title">Choose a companion</h2>
+      </div>
+      <div id="characters" class="cards" aria-live="polite">
+        <p class="loading">Loading character packs…</p>
+      </div>
+    </section>
+
+    <section class="install" aria-labelledby="install-title">
+      <div>
+        <p class="eyebrow">Installation</p>
+        <h2 id="install-title">Add a pack in a minute</h2>
+      </div>
+      <ol>
+        <li>Download the character’s <code>.acpk</code> file.</li>
+        <li>Open Agent Buddy Settings and select <strong>Characters</strong>.</li>
+        <li>Select <strong>Add character pack</strong>, choose the file, and then select <strong>Install</strong>.</li>
+      </ol>
+      <p class="compatibility">These are independent add-on packs. Agent Buddy retains its own copy after import.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Independent project by Screw City Software. Agent Buddy is a trademark of Dan Wahlin.</p>
+  </footer>
+</body>
+</html>
+

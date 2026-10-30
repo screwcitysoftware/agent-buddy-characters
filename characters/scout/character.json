@@ -1,0 +1,10 @@
+{
+  "id": "scout",
+  "name": "Scout",
+  "layout": "base-patch",
+  "frames": "frames.bin",
+  "metadata": "frames.json",
+  "motionSpeed": 0.92,
+  "walk": null,
+  "validator": "tools/validate_frames.py"
+}

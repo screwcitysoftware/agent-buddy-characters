@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+      - name: Build packs and gallery
+        run: |
+          python scripts/build.py
+          python scripts/build_site.py
+      - name: Verify generated sources are current
+        run: git diff --exit-code -- characters
+      - name: Test and validate
+        run: |
+          python -m unittest discover -s tests -v
+          for pack in dist/*.acpk; do python tools/character_pack.py validate "$pack"; done
+      - name: Upload packs and reports
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: character-packs-${{ github.sha }}
+          path: |
+            dist/*.acpk
+            dist/SHA256SUMS
+            dist/catalog.json
+            dist/validation.json
+          if-no-files-found: error
+          retention-days: 7
+
+  character-lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check out pinned Agent Buddy
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: DanWahlin/agent-buddy
+          ref: c87463a0f07c36ae9efec60ab9a5444d7b97a584
+          path: agent-buddy
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+      - name: Install native renderer dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends clang zlib1g-dev
+      - name: Build packs and Character Lab
+        run: |
+          python scripts/build.py
+          cd agent-buddy
+          bash tools/build_character_preview.sh
+      - name: Render every character state
+        run: python scripts/test_character_lab.py agent-buddy
+      - name: Upload desktop-emulator screenshots
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: character-lab-${{ github.sha }}
+          path: test-results/character-lab/*.png
+          if-no-files-found: error
+          retention-days: 7
+
