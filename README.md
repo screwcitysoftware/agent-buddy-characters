@@ -12,7 +12,7 @@ Scout is a warm brown-and-white puppy with floppy ears, large dark-brown eyes, a
 red collar, and a glowing blue paw-print tag. The artwork uses a soft 3D style on
 true black for Agent Buddy's AMOLED display and desktop renderer.
 
-![Scout animation contact sheet](characters/scout/assets/generated/scout-contact-sheet.png)
+![Scout, a brown-and-white puppy with a red collar and glowing blue tag](characters/scout/assets/source/scout-master-original.png)
 
 Download the latest pack from [GitHub Releases](https://github.com/ScrewCitySoftware/agent-buddy-characters/releases/latest)
 or browse the character gallery after GitHub Pages is enabled.
