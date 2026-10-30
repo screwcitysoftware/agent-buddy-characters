@@ -40,10 +40,10 @@ class RepositoryTests(unittest.TestCase):
 
     def test_public_site_links_attribution_and_uses_master_art(self):
         html = (ROOT / "_site/index.html").read_text(encoding="utf-8")
-        self.assertEqual(html.count('href="https://getagentbuddy.com/"'), 2)
+        self.assertEqual(html.count('href="https://getagentbuddy.com/"'), 1)
         app = (ROOT / "_site/app.js").read_text(encoding="utf-8")
         self.assertNotIn("Agent Buddy", app)
-        self.assertIn('href="https://github.com/DanWahlin"', html)
+        self.assertNotIn("Dan Wahlin", html)
         catalog = json.loads((ROOT / "dist/catalog.json").read_text(encoding="utf-8"))
         scout = next(record for record in catalog["characters"] if record["id"] == "scout")
         self.assertEqual(scout["preview"], "assets/source/scout-master-original.png")
