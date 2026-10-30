@@ -36,6 +36,16 @@ class RepositoryTests(unittest.TestCase):
             self.assertTrue(record["downloadUrl"].startswith("https://github.com/"))
             self.assertTrue((ROOT / "_site" / record["previewUrl"]).is_file())
 
+    def test_public_site_links_attribution_and_uses_master_art(self):
+        html = (ROOT / "_site/index.html").read_text(encoding="utf-8")
+        self.assertGreaterEqual(html.count('href="https://getagentbuddy.com/"'), 5)
+        app = (ROOT / "_site/app.js").read_text(encoding="utf-8")
+        self.assertIn('<a href="https://getagentbuddy.com/">Agent Buddy</a>', app)
+        self.assertIn('href="https://github.com/DanWahlin"', html)
+        catalog = json.loads((ROOT / "dist/catalog.json").read_text(encoding="utf-8"))
+        scout = next(record for record in catalog["characters"] if record["id"] == "scout")
+        self.assertEqual(scout["preview"], "assets/source/scout-master-original.png")
+
     def test_workflows_pin_actions_and_upstream(self):
         upstream = json.loads((ROOT / "UPSTREAM_AGENT_BUDDY.json").read_text(encoding="utf-8"))
         for name in ("ci.yml", "release.yml"):

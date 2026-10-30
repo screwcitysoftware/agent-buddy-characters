@@ -9,12 +9,37 @@
   <script src="app.js" defer></script>
 </head>
 <body>
+  <a class="skip-link" href="#characters">Skip to characters</a>
+  <nav class="nav" aria-label="Primary navigation">
+    <a class="brand" href="./" aria-label="Screw City Software character packs home">
+      <span class="brand-mark" aria-hidden="true">SC</span>
+      <span>Buddy Packs</span>
+    </a>
+    <div class="nav-links">
+      <a href="https://getagentbuddy.com/">Agent Buddy</a>
+      <a href="https://github.com/ScrewCitySoftware/agent-buddy-characters">GitHub</a>
+    </div>
+  </nav>
+
   <header class="hero">
-    <div class="hero__content">
-      <p class="eyebrow">Screw City Software presents</p>
-      <h1>Characters for your Agent Buddy</h1>
-      <p class="lede">Original, reproducibly built character packs for the Agent Buddy desktop companion and supported devices.</p>
-      <a class="source-link" href="https://github.com/ScrewCitySoftware/agent-buddy-characters">View the source on GitHub</a>
+    <div class="hero__grid">
+      <div class="hero__content">
+        <p class="eyebrow">Screw City Software character library</p>
+        <h1>Give your buddy a new face.</h1>
+        <p class="lede">Original, reproducibly built character packs for <a href="https://getagentbuddy.com/">Agent Buddy</a>—ready for the desktop companion and supported devices.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#characters">Browse characters</a>
+          <a class="button button-secondary" href="https://getagentbuddy.com/">Meet Agent Buddy <span aria-hidden="true">↗</span></a>
+        </div>
+      </div>
+      <div class="hero-art" aria-label="Scout character preview">
+        <div class="hero-art__halo" aria-hidden="true"></div>
+        <div class="hero-art__frame">
+          <span class="hero-art__label">Meet Scout</span>
+          <img src="assets/scout.png" alt="Scout, a brown-and-white puppy with a red collar and glowing blue tag">
+          <span class="hero-art__format">ACPK · Desktop + device</span>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -36,15 +61,15 @@
       </div>
       <ol>
         <li>Download the character’s <code>.acpk</code> file.</li>
-        <li>Open Agent Buddy Settings and select <strong>Characters</strong>.</li>
+        <li>Open <a href="https://getagentbuddy.com/">Agent Buddy</a> Settings and select <strong>Characters</strong>.</li>
         <li>Select <strong>Add character pack</strong>, choose the file, and then select <strong>Install</strong>.</li>
       </ol>
-      <p class="compatibility">These are independent add-on packs. Agent Buddy retains its own copy after import.</p>
+      <p class="compatibility">These are independent add-on packs. <a href="https://getagentbuddy.com/">Agent Buddy</a> retains its own copy after import.</p>
     </section>
   </main>
 
   <footer>
-    <p>Independent project by Screw City Software. Agent Buddy is a trademark of Dan Wahlin.</p>
+    <p>Independent project by Screw City Software. <a href="https://getagentbuddy.com/">Agent Buddy</a> is a trademark of <a href="https://github.com/DanWahlin">Dan Wahlin</a>.</p>
   </footer>
 </body>
 </html>

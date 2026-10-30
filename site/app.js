@@ -25,7 +25,7 @@ async function loadCharacters() {
           </div>
           <p>${escapeHtml(character.description)}</p>
           <dl>
-            <div><dt>Agent Buddy</dt><dd>${escapeHtml(character.minimumAgentBuddyVersion)}+</dd></div>
+            <div><dt><a href="https://getagentbuddy.com/">Agent Buddy</a></dt><dd>${escapeHtml(character.minimumAgentBuddyVersion)}+</dd></div>
             <div><dt>Pack size</dt><dd>${formatBytes(character.bytes)}</dd></div>
             <div><dt>License</dt><dd>${escapeHtml(character.artworkLicense)}</dd></div>
           </dl>
