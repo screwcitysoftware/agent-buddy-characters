@@ -6,6 +6,8 @@ import json
 import shutil
 from pathlib import Path
 
+from export_web_animation import export
+
 ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 OUTPUT = ROOT / "_site"
@@ -27,6 +29,12 @@ def main() -> int:
         destination = assets / f"{character['id']}{suffix}"
         shutil.copy2(source, destination)
         character["previewUrl"] = f"assets/{destination.name}"
+        animation_track = character.pop("websiteAnimationTrack", None)
+        if animation_track:
+            animation_path = assets / f"{character['id']}-animation.png"
+            character["animation"] = export(
+                ROOT / "characters" / character["id"], str(animation_track), animation_path
+            )
         if "downloadUrl" not in character:
             raise ValueError(f"{character['id']}: catalog record is missing downloadUrl")
     (OUTPUT / "catalog.json").write_text(

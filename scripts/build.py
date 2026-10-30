@@ -92,6 +92,8 @@ def character_record(path: Path) -> dict[str, object]:
             f"{catalog['releaseTag']}/{filename}"
         ),
     }
+    if catalog.get("websiteAnimationTrack"):
+        record["websiteAnimationTrack"] = catalog["websiteAnimationTrack"]
     return record
 
 

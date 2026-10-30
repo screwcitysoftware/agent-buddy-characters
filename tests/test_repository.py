@@ -37,6 +37,11 @@ class RepositoryTests(unittest.TestCase):
         for record in catalog["characters"]:
             self.assertTrue(record["downloadUrl"].startswith("https://github.com/"))
             self.assertTrue((ROOT / "_site" / record["previewUrl"]).is_file())
+            if record["id"] == "scout":
+                animation = record["animation"]
+                self.assertEqual(animation["frameCount"], 20)
+                self.assertEqual((animation["frameWidth"], animation["frameHeight"]), (206, 176))
+                self.assertTrue((ROOT / "_site" / animation["sheetUrl"]).is_file())
 
     def test_public_site_links_attribution_and_uses_master_art(self):
         html = (ROOT / "_site/index.html").read_text(encoding="utf-8")
@@ -52,7 +57,11 @@ class RepositoryTests(unittest.TestCase):
         css = (ROOT / "_site/styles.css").read_text(encoding="utf-8")
         self.assertIn("grid-template-columns: repeat(3, minmax(0, 1fr))", css)
         self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr))", css)
-        self.assertIn("aspect-ratio: 4 / 3", css)
+        self.assertIn("aspect-ratio: 412 / 352", css)
+        app = (ROOT / "_site/app.js").read_text(encoding="utf-8")
+        self.assertIn("IntersectionObserver", app)
+        self.assertIn("prefers-reduced-motion", app)
+        self.assertIn("preview-toggle", app)
 
     def test_workflows_pin_actions_and_upstream(self):
         upstream = json.loads((ROOT / "UPSTREAM_AGENT_BUDDY.json").read_text(encoding="utf-8"))

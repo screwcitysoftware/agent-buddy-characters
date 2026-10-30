@@ -271,16 +271,45 @@ main { padding: 2rem 0 6rem; }
 }
 
 .preview-wrap {
-  aspect-ratio: 4 / 3;
+  position: relative;
+  aspect-ratio: 412 / 352;
   display: grid;
   place-items: center;
-  padding: .75rem;
+  padding: 1rem;
   overflow: hidden;
   border-bottom: 1px solid var(--line);
   background: #000;
 }
 
-.preview-wrap img { width: 100%; height: 100%; object-fit: contain; }
+.preview-wrap img,
+.character-animation {
+  grid-area: 1 / 1;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.character-animation { display: none; }
+.preview-wrap.is-ready .character-animation { display: block; }
+.preview-wrap.is-ready .preview-fallback { display: none; }
+
+.preview-toggle {
+  position: absolute;
+  right: .65rem;
+  bottom: .55rem;
+  z-index: 2;
+  padding: .3rem .55rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: rgb(3 4 6 / 78%);
+  color: var(--soft);
+  font: 600 .65rem/1.2 var(--mono);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+}
+
+.preview-toggle:hover { color: var(--ink); border-color: rgb(87 185 255 / 40%); }
 .card__body { padding: 1.35rem; }
 .card__title-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .card h3 { font-size: 1.65rem; }
