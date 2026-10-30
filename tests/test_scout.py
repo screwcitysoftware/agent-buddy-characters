@@ -55,7 +55,7 @@ class ScoutTests(unittest.TestCase):
             index = (y * width + x) * 3
             return tuple(image[index:index + 3])
 
-        for cx, cy, rx, ry in ((99, 80, 21, 22), (147, 79, 21, 22)):
+        for cx, cy, rx, ry in ((99, 81, 12, 15), (143, 80, 12, 15)):
             core = [
                 (x, y)
                 for y in range(cy - ry, cy + ry + 1)

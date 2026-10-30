@@ -121,15 +121,15 @@ def blink(master: bytes, openness: float, asymmetric: float = 0.0) -> bytearray:
     result = bytearray(master)
     # Eye geometry is measured on the prepared 240x224 master. Keep it here,
     # rather than in display coordinates, so the lids are transformed with the
-    # rest of the head. The previous values predated the latest master resize
-    # and left the lower/inside edges of both eyes visible at full closure.
+    # rest of the head. Match the dark eye sockets closely: oversized masks read
+    # as broad patches of forehead fur instead of eyelids in the web preview.
     #
     # Each lid borrows a narrow strip of real brow fur and stretches it over the
     # eye. That retains the master render's strand detail, lighting, and white
     # blaze instead of painting a flat brown ellipse over the face.
     eyes = (
-        (99, 80, 21, 22, 51, 68),
-        (147, 79, 21, 22, 49, 66),
+        (99, 81, 12, 15, 54, 69),
+        (143, 80, 12, 15, 53, 68),
     )
     for eye_number, (cx, cy, rx, ry, brow_top, brow_bottom) in enumerate(eyes):
         local_open = max(0.0, min(1.0, openness + (asymmetric if eye_number == 0 else -asymmetric)))
