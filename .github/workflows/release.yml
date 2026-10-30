@@ -136,6 +136,7 @@ jobs:
 
   deploy-pages:
     needs: pages
+    if: always() && needs.pages.result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:

@@ -66,6 +66,7 @@ class RepositoryTests(unittest.TestCase):
         release = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
         self.assertIn("python scripts/release_plan.py", release)
         self.assertNotIn("workflow_dispatch", release)
+        self.assertIn("if: always() && needs.pages.result == 'success'", release)
 
 
 if __name__ == "__main__":
