@@ -41,7 +41,8 @@ def write_png(path: Path, frame: bytes) -> None:
     import zlib
     rgb = bytearray(WIDTH * HEIGHT * 3)
     for index in range(WIDTH * HEIGHT):
-        word = struct.unpack_from("<H", frame, index * 2)[0]
+        # Character Lab writes the firmware's big-endian RGB565 framebuffer.
+        word = struct.unpack_from(">H", frame, index * 2)[0]
         target = index * 3
         rgb[target] = round(((word >> 11) & 31) * 255 / 31)
         rgb[target + 1] = round(((word >> 5) & 63) * 255 / 63)
@@ -96,14 +97,27 @@ def main() -> int:
                 for _ in range(180):
                     visible_mode = int(fields[5])
                     blink = int(fields[4])
-                    if visible_mode == mode and (mode != 5 or blink == 4):
+                    pose = int(fields[3])
+                    progressed = (
+                        mode == 0
+                        or mode == 1 and 3 <= pose <= 7
+                        or mode in (2, 3, 4) and pose >= 21
+                        or mode == 5 and blink == 4
+                    )
+                    if visible_mode == mode and progressed:
                         selected = frame
                         break
                     fields, frame = render(process, character, -1, 1 / 30)
                 if selected is None:
                     raise RuntimeError(f"{character}: {name} did not become visible")
-                if len(set(selected)) < 8:
-                    raise RuntimeError(f"{character}: {name} produced a blank-looking frame")
+                rendered_pixels = sum(
+                    selected[index:index + 2] != b"\0\0"
+                    for index in range(0, len(selected), 2)
+                )
+                if rendered_pixels < 5_000:
+                    raise RuntimeError(
+                        f"{character}: {name} produced only {rendered_pixels:,} non-black pixels"
+                    )
                 write_png(output / f"{character}-{name}.png", selected)
             print(f"Rendered {character}: {', '.join(MODES.values())}")
     finally:
