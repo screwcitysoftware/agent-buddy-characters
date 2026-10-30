@@ -21,6 +21,10 @@ class ReleasePlanTests(unittest.TestCase):
             RELEASE_PLAN.changed_ids_from_paths(["tools/character_pack.py"], known),
             ["other", "scout"],
         )
+        self.assertEqual(
+            RELEASE_PLAN.changed_ids_from_paths(["scripts/release_plan.py"], known),
+            ["other", "scout"],
+        )
         self.assertEqual(RELEASE_PLAN.changed_ids_from_paths(["site/index.html"], known), [])
 
     def test_unchanged_pack_does_not_release(self):
@@ -37,6 +41,13 @@ class ReleasePlanTests(unittest.TestCase):
         current = {"version": "1.0.2", "releaseTag": "scout-v1.0.2"}
         self.assertEqual(
             RELEASE_PLAN.evaluate("scout", current, previous, "new", "old", None),
+            {"id": "scout", "version": "1.0.2", "tag": "scout-v1.0.2"},
+        )
+
+    def test_failed_release_metadata_can_be_corrected_without_another_bump(self):
+        metadata = {"version": "1.0.2", "releaseTag": "scout-v1.0.2"}
+        self.assertEqual(
+            RELEASE_PLAN.evaluate("scout", metadata, metadata, "new", None, None),
             {"id": "scout", "version": "1.0.2", "tag": "scout-v1.0.2"},
         )
 

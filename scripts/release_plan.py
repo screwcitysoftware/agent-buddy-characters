@@ -14,7 +14,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CHARACTERS = ROOT / "characters"
 SEMVER = re.compile(r"[0-9]+\.[0-9]+\.[0-9]+(?:[.-][0-9A-Za-z.-]+)?")
-SHARED_PACK_INPUTS = {"tools/character_pack.py", "tools/sprite_codec.py"}
+SHARED_PACK_INPUTS = {
+    "scripts/release_plan.py",
+    "tools/character_pack.py",
+    "tools/sprite_codec.py",
+}
 
 
 def command(*arguments: str, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -104,7 +108,11 @@ def evaluate(
     expected_tag = f"{pack_id}-v{version}"
     if tag != expected_tag:
         raise ValueError(f"{pack_id}: changed pack must use releaseTag {expected_tag}")
-    if previous and version == previous_version:
+    # A failed planning run can leave the bumped version in the immediately
+    # previous commit without ever publishing its tag. Treat that as continued
+    # preparation of the same unreleased version. Once a release asset exists,
+    # further pack changes still require another version bump.
+    if previous and version == previous_version and previous_digest is not None:
         raise ValueError(f"{pack_id}: changed pack requires a new version")
     if proposed_digest is not None:
         if proposed_digest != current_digest:
