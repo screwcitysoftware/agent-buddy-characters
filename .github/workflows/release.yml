@@ -1,39 +1,53 @@
-name: Release
+name: Publish
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: Semantic version without the v prefix (for example, 1.0.0)
-        required: true
-        type: string
-      desktop_visual_approved:
-        description: I reviewed the Character Lab screenshots for this commit
-        required: true
-        default: false
-        type: boolean
+  push:
+    branches: [main]
 
 concurrency:
-  group: release
+  group: publish-main
   cancel-in-progress: false
 
 jobs:
-  character-lab:
+  plan:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 15
     permissions:
       contents: read
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      has_releases: ${{ steps.plan.outputs.has_releases }}
     steps:
-      - name: Require main and visual approval
-        env:
-          APPROVED: ${{ inputs.desktop_visual_approved }}
-        run: |
-          test "$GITHUB_REF" = "refs/heads/main"
-          test "$APPROVED" = "true"
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.13'
+      - name: Plan changed character releases
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/release_plan.py --base "${{ github.event.before }}"
+
+  release:
+    needs: plan
+    if: needs.plan.outputs.has_releases == 'true'
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
       - name: Check out pinned Agent Buddy
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -49,73 +63,69 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends clang zlib1g-dev
-      - name: Build and render every character state
+      - name: Build and validate ${{ matrix.id }}
         run: |
-          python scripts/build.py
+          python scripts/build.py --character "${{ matrix.id }}"
+          python tools/character_pack.py validate "dist/${{ matrix.id }}.acpk"
           cd agent-buddy
           bash tools/build_character_preview.sh
           cd ..
           python scripts/test_character_lab.py agent-buddy
-      - name: Upload approved screenshots
+      - name: Upload Character Lab screenshots
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: release-character-lab-${{ github.sha }}
+          name: character-lab-${{ matrix.id }}-${{ github.sha }}
           path: test-results/character-lab/*.png
           if-no-files-found: error
           retention-days: 7
+      - name: Tag and publish ${{ matrix.id }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ matrix.tag }}
+          CHARACTER: ${{ matrix.id }}
+          VERSION: ${{ matrix.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if ! git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            git tag -a "$TAG" -m "$CHARACTER v$VERSION"
+            git push origin "$TAG"
+          fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" \
+              "dist/$CHARACTER.acpk" dist/SHA256SUMS dist/catalog.json dist/validation.json \
+              --clobber
+            gh release edit "$TAG" --title "$CHARACTER v$VERSION"
+          else
+            gh release create "$TAG" \
+              "dist/$CHARACTER.acpk" dist/SHA256SUMS dist/catalog.json dist/validation.json \
+              --verify-tag --generate-notes --title "$CHARACTER v$VERSION"
+          fi
 
-  publish:
-    needs: character-lab
+  pages:
+    needs: [plan, release]
+    if: >-
+      always() && needs.plan.result == 'success' &&
+      (needs.release.result == 'success' || needs.release.result == 'skipped')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
-      contents: write
+      contents: read
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
+          persist-credentials: false
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.13'
-      - name: Validate version
-        env:
-          VERSION: ${{ inputs.version }}
+      - name: Build and test gallery
         run: |
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
-            echo "Version must be semantic and must not include a v prefix." >&2
-            exit 1
-          fi
-          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
-            echo "Tag v$VERSION already exists." >&2
-            exit 1
-          fi
-      - name: Build, test, and generate gallery
-        env:
-          VERSION: ${{ inputs.version }}
-        run: |
-          python scripts/build.py --release-version "$VERSION"
+          python scripts/build.py
           python scripts/build_site.py
           git diff --exit-code -- characters
           python -m unittest discover -s tests -v
-          for pack in dist/*.acpk; do python tools/character_pack.py validate "$pack"; done
-      - name: Tag release
-        env:
-          VERSION: ${{ inputs.version }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "v$VERSION" -m "Release v$VERSION"
-          git push origin "v$VERSION"
-      - name: Publish GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ inputs.version }}
-        run: >-
-          gh release create "v$VERSION"
-          dist/*.acpk dist/SHA256SUMS dist/catalog.json dist/validation.json
-          --verify-tag --generate-notes --title "v$VERSION"
       - name: Configure Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - name: Upload Pages artifact
@@ -125,7 +135,7 @@ jobs:
           retention-days: 1
 
   deploy-pages:
-    needs: publish
+    needs: pages
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -138,4 +148,3 @@ jobs:
       - name: Deploy GitHub Pages
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
-

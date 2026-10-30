@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regenerate, package, validate, and catalog every character."""
+"""Regenerate, package, validate, and catalog selected characters."""
 from __future__ import annotations
 
 import argparse
@@ -29,15 +29,22 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def discover() -> list[Path]:
+def discover(selected: list[str] | None = None) -> list[Path]:
     found = [path for path in sorted(CHARACTERS.iterdir())
              if path.is_dir() and (path / "character.json").is_file()]
     if not found:
         raise RuntimeError("No characters were found.")
+    if selected:
+        requested = set(selected)
+        known = {path.name for path in found}
+        unknown = sorted(requested - known)
+        if unknown:
+            raise ValueError(f"Unknown character(s): {', '.join(unknown)}")
+        found = [path for path in found if path.name in requested]
     return found
 
 
-def character_record(path: Path, release_version: str) -> dict[str, object]:
+def character_record(path: Path) -> dict[str, object]:
     manifest = load_json(path / "character.json")
     catalog = load_json(path / "catalog.json")
     if not isinstance(manifest, dict) or not isinstance(catalog, dict):
@@ -46,7 +53,7 @@ def character_record(path: Path, release_version: str) -> dict[str, object]:
     if pack_id != path.name:
         raise ValueError(f"{path.name}: manifest id must match the directory name")
     required = {
-        "description", "preview", "artworkLicense", "minimumAgentBuddyVersion",
+        "description", "version", "releaseTag", "preview", "artworkLicense", "minimumAgentBuddyVersion",
         "testedAgentBuddyVersion", "status",
     }
     missing = sorted(required - catalog.keys())
@@ -67,6 +74,8 @@ def character_record(path: Path, release_version: str) -> dict[str, object]:
         "id": pack_id,
         "name": manifest.get("name"),
         "description": catalog["description"],
+        "version": catalog["version"],
+        "releaseTag": catalog["releaseTag"],
         "layout": manifest.get("layout"),
         "artworkLicense": catalog["artworkLicense"],
         "minimumAgentBuddyVersion": catalog["minimumAgentBuddyVersion"],
@@ -78,40 +87,43 @@ def character_record(path: Path, release_version: str) -> dict[str, object]:
         "sha256": sha256(pack),
         "embeddedSha256": info["sha256"],
         "frameCount": info["frame_count"],
-    }
-    if release_version != "development":
-        record["downloadUrl"] = (
+        "downloadUrl": (
             f"https://github.com/{REPOSITORY}/releases/download/"
-            f"v{release_version}/{filename}"
-        )
+            f"{catalog['releaseTag']}/{filename}"
+        ),
+    }
     return record
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--release-version", default="development")
+    parser.add_argument(
+        "--character", action="append", dest="characters", metavar="ID",
+        help="Build only this character; may be supplied more than once.",
+    )
     args = parser.parse_args(argv)
 
-    version = args.release_version.removeprefix("v")
-    characters = discover()
+    characters = discover(args.characters)
     for character in characters:
         generator = character / "build.py"
         if not generator.is_file():
             raise ValueError(f"{character.name}: build.py is required")
         run(str(generator.relative_to(ROOT)))
 
-    run("tools/character_pack.py", "build")
+    pack_arguments = ["tools/character_pack.py", "build"]
+    for character in characters:
+        pack_arguments.extend(("--character", character.name))
+    run(*pack_arguments)
     if DIST.exists():
         shutil.rmtree(DIST)
     DIST.mkdir(parents=True, exist_ok=True)
-    records = [character_record(path, version) for path in characters]
+    records = [character_record(path) for path in characters]
     for record in records:
         source = BUILD_PACKS / str(record["file"])
         shutil.copy2(source, DIST / source.name)
 
     catalog = {
-        "schemaVersion": 1,
-        "releaseVersion": version,
+        "schemaVersion": 2,
         "repository": REPOSITORY,
         "characters": records,
     }

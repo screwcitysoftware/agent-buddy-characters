@@ -27,10 +27,8 @@ def main() -> int:
         destination = assets / f"{character['id']}{suffix}"
         shutil.copy2(source, destination)
         character["previewUrl"] = f"assets/{destination.name}"
-        character.setdefault(
-            "downloadUrl",
-            f"https://github.com/{catalog['repository']}/releases/latest/download/{character['file']}",
-        )
+        if "downloadUrl" not in character:
+            raise ValueError(f"{character['id']}: catalog record is missing downloadUrl")
     (OUTPUT / "catalog.json").write_text(
         json.dumps(catalog, indent=2) + "\n", encoding="utf-8", newline="\n"
     )

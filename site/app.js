@@ -16,7 +16,7 @@ async function loadCharacters() {
     container.innerHTML = catalog.characters.map(character => `
       <article class="card">
         <div class="preview-wrap">
-          <img src="${escapeHtml(character.previewUrl)}" alt="${escapeHtml(character.name)} animation contact sheet" loading="lazy">
+          <img src="${escapeHtml(character.previewUrl)}" alt="${escapeHtml(character.name)} character preview" loading="lazy">
         </div>
         <div class="card__body">
           <div class="card__title-row">
@@ -25,7 +25,7 @@ async function loadCharacters() {
           </div>
           <p>${escapeHtml(character.description)}</p>
           <dl>
-            <div><dt><a href="https://getagentbuddy.com/">Agent Buddy</a></dt><dd>${escapeHtml(character.minimumAgentBuddyVersion)}+</dd></div>
+            <div><dt>Version</dt><dd>v${escapeHtml(character.version)}</dd></div>
             <div><dt>Pack size</dt><dd>${formatBytes(character.bytes)}</dd></div>
             <div><dt>License</dt><dd>${escapeHtml(character.artworkLicense)}</dd></div>
           </dl>
@@ -37,7 +37,7 @@ async function loadCharacters() {
         </div>
       </article>
     `).join('');
-    document.title = `Agent Buddy Characters · ${catalog.releaseVersion === 'development' ? 'Latest' : `v${catalog.releaseVersion}`}`;
+    document.title = 'Character Packs · Screw City Software';
   } catch (error) {
     container.innerHTML = '<p class="error">The character catalog could not be loaded. Downloads remain available from GitHub Releases.</p>';
     console.error(error);

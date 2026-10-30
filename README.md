@@ -14,8 +14,8 @@ true black for Agent Buddy's AMOLED display and desktop renderer.
 
 ![Scout, a brown-and-white puppy with a red collar and glowing blue tag](characters/scout/assets/source/scout-master-original.png)
 
-Download the latest pack from [GitHub Releases](https://github.com/ScrewCitySoftware/agent-buddy-characters/releases/latest)
-or browse the character gallery after GitHub Pages is enabled.
+Download packs from the [character gallery](https://screwcitysoftware.github.io/agent-buddy-characters/)
+or browse the character-specific entries in [GitHub Releases](https://github.com/ScrewCitySoftware/agent-buddy-characters/releases).
 
 ## Install
 
@@ -62,7 +62,8 @@ tests/                  Pack, repository contract, and artwork behavior tests
 Each character provides Agent Buddy's upstream `character.json`, repository gallery
 metadata in `catalog.json`, and a `build.py` generator. The root build discovers
 these directories automatically, so new internally maintained characters do not
-require changes to the pack orchestrator.
+require changes to the pack orchestrator. Build one character with
+`python scripts/build.py --character <id>`.
 
 The pinned upstream version and commit are recorded in
 [`UPSTREAM_AGENT_BUDDY.json`](UPSTREAM_AGENT_BUDDY.json). See
@@ -72,8 +73,11 @@ The pinned upstream version and commit are recorded in
 
 Pull requests regenerate checked-in character outputs, validate each ACPK with the
 official decoder, and exercise the pack through Agent Buddy's native Character Lab
-renderer. Stable releases additionally require a maintainer's visual approval of
-the desktop-emulator screenshots. Physical-device testing is not required.
+renderer. Each character declares its own `version` and `releaseTag`. After a merge
+to `main`, automation compares changed pack bytes with the currently published
+asset and creates an independent `<id>-v<version>` release only when the ACPK
+changed. Website and metadata-only edits deploy Pages without releasing a pack.
+Physical-device testing is not required.
 
 ## Licensing and trademarks
 

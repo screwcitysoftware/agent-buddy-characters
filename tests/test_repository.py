@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 class RepositoryTests(unittest.TestCase):
     def test_catalog_matches_distributable_packs(self):
         catalog = json.loads((ROOT / "dist/catalog.json").read_text(encoding="utf-8"))
-        self.assertEqual(catalog["schemaVersion"], 1)
+        self.assertEqual(catalog["schemaVersion"], 2)
         self.assertEqual(catalog["repository"], "ScrewCitySoftware/agent-buddy-characters")
         folders = sorted(path.name for path in (ROOT / "characters").iterdir()
                          if (path / "character.json").is_file())
@@ -22,6 +22,8 @@ class RepositoryTests(unittest.TestCase):
             pack = ROOT / "dist" / record["file"]
             self.assertTrue(pack.is_file())
             self.assertEqual(hashlib.sha256(pack.read_bytes()).hexdigest(), record["sha256"])
+            self.assertRegex(record["version"], r"^\d+\.\d+\.\d+")
+            self.assertIn(f"/{record['releaseTag']}/{record['file']}", record["downloadUrl"])
 
     def test_checksum_manifest_matches_catalog(self):
         catalog = json.loads((ROOT / "dist/catalog.json").read_text(encoding="utf-8"))
@@ -38,13 +40,19 @@ class RepositoryTests(unittest.TestCase):
 
     def test_public_site_links_attribution_and_uses_master_art(self):
         html = (ROOT / "_site/index.html").read_text(encoding="utf-8")
-        self.assertGreaterEqual(html.count('href="https://getagentbuddy.com/"'), 5)
+        self.assertEqual(html.count('href="https://getagentbuddy.com/"'), 2)
         app = (ROOT / "_site/app.js").read_text(encoding="utf-8")
-        self.assertIn('<a href="https://getagentbuddy.com/">Agent Buddy</a>', app)
+        self.assertNotIn("Agent Buddy", app)
         self.assertIn('href="https://github.com/DanWahlin"', html)
         catalog = json.loads((ROOT / "dist/catalog.json").read_text(encoding="utf-8"))
         scout = next(record for record in catalog["characters"] if record["id"] == "scout")
         self.assertEqual(scout["preview"], "assets/source/scout-master-original.png")
+
+    def test_gallery_uses_three_column_desktop_layout(self):
+        css = (ROOT / "_site/styles.css").read_text(encoding="utf-8")
+        self.assertIn("grid-template-columns: repeat(3, minmax(0, 1fr))", css)
+        self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr))", css)
+        self.assertIn("aspect-ratio: 4 / 3", css)
 
     def test_workflows_pin_actions_and_upstream(self):
         upstream = json.loads((ROOT / "UPSTREAM_AGENT_BUDDY.json").read_text(encoding="utf-8"))
@@ -55,6 +63,9 @@ class RepositoryTests(unittest.TestCase):
             self.assertIn(upstream["commit"], workflow)
         ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
         self.assertIn("retention-days: 7", ci)
+        release = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
+        self.assertIn("python scripts/release_plan.py", release)
+        self.assertNotIn("workflow_dispatch", release)
 
 
 if __name__ == "__main__":

@@ -22,3 +22,11 @@ commit as their source change. Do not commit `build/`, `dist/`, or `_site/`.
 
 Any artwork change must preserve clear provenance and its declared license.
 
+## Character versions
+
+Each `characters/<id>/catalog.json` owns that character's semantic `version` and
+`releaseTag`. When a change alters the generated ACPK, bump the version explicitly
+and set the tag to `<id>-v<version>`. Do not bump either field for descriptions,
+previews, documentation, or other changes that leave the pack bytes unchanged.
+Merges to `main` publish changed packs automatically after validation.
+

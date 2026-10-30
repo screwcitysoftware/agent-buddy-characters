@@ -441,11 +441,19 @@ def host_assembly(paths):
     return "\n".join(lines) + "\n"
 
 
-def build(root=ROOT):
+def build(root=ROOT, selected=None):
     output = root / OUTPUT
     partition = read_assets_partition(root)["size"]
     paths = {}
-    for character_dir in discover_characters(root):
+    characters = discover_characters(root)
+    if selected:
+        requested = set(selected)
+        known = {path.name for path in characters}
+        unknown = sorted(requested - known)
+        if unknown:
+            raise PackError(f"Unknown character(s): {', '.join(unknown)}")
+        characters = [path for path in characters if path.name in requested]
+    for character_dir in characters:
         manifest = load_json(character_dir / "character.json")
         pack = build_character(root, character_dir)
         info = decode(pack, partition)
@@ -462,13 +470,14 @@ def build(root=ROOT):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     commands = parser.add_subparsers(dest="command", required=True)
-    commands.add_parser("build", help="Build character packs into build/characters")
+    build_command = commands.add_parser("build", help="Build character packs into build/characters")
+    build_command.add_argument("--character", action="append", dest="characters", metavar="ID")
     check = commands.add_parser("validate", help="Validate a pack file")
     check.add_argument("pack", type=Path)
     args = parser.parse_args(argv)
     try:
         if args.command == "build":
-            build()
+            build(selected=args.characters)
         else:
             info = decode(args.pack.read_bytes(), read_assets_partition()["size"])
             print(json.dumps(info, indent=2))
