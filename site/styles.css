@@ -327,7 +327,7 @@ details code { display: block; overflow-wrap: anywhere; margin-top: .6rem; color
 
 .device-demo {
   display: grid;
-  grid-template-columns: minmax(0, .7fr) minmax(460px, 1.3fr);
+  grid-template-columns: minmax(0, .8fr) minmax(380px, 1.2fr);
   align-items: center;
   gap: clamp(2.5rem, 7vw, 6rem);
   padding: clamp(4.5rem, 9vw, 8rem) 0;
@@ -339,8 +339,8 @@ details code { display: block; overflow-wrap: anywhere; margin-top: .6rem; color
 .device-preview { min-width: 0; display: grid; place-items: center; }
 
 .device-shell {
-  width: min(100%, 500px);
-  padding: 18px 18px 16px;
+  width: min(100%, 380px);
+  padding: 15px 15px 14px;
   border: 1px solid rgb(255 255 255 / 22%);
   border-radius: 2.2rem;
   background: linear-gradient(145deg, #272d38, #10141b 52%, #07090d);
@@ -378,7 +378,7 @@ details code { display: block; overflow-wrap: anywhere; margin-top: .6rem; color
 
 .device-screen {
   position: relative;
-  width: min(100%, 412px);
+  width: min(100%, 309px);
   aspect-ratio: 412 / 352;
   margin-inline: auto;
   display: grid;

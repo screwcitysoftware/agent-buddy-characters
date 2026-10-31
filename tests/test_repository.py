@@ -61,6 +61,7 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn("aspect-ratio: 1", css)
         self.assertIn(".device-screen {", css)
         self.assertIn("aspect-ratio: 412 / 352", css)
+        self.assertIn("width: min(100%, 309px)", css)
         app = (ROOT / "_site/app.js").read_text(encoding="utf-8")
         self.assertIn("IntersectionObserver", app)
         self.assertIn("prefers-reduced-motion", app)
