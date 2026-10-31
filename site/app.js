@@ -8,28 +8,42 @@ const escapeHtml = value => String(value).replace(/[&<>'"]/g, character => ({
 })[character]);
 
 const previewMarkup = character => {
-  const fallback = `<img class="preview-fallback" src="${escapeHtml(character.previewUrl)}" alt="${escapeHtml(character.name)} character preview" loading="lazy">`;
-  if (!character.animation) return fallback;
+  return `<img src="${escapeHtml(character.previewUrl)}" alt="${escapeHtml(character.name)} character preview" loading="lazy">`;
+};
+
+const devicePreviewMarkup = character => {
   const animation = character.animation;
   return `
-    ${fallback}
-    <canvas class="character-animation"
-      width="${Number(animation.frameWidth)}" height="${Number(animation.frameHeight)}"
-      data-sheet="${escapeHtml(animation.sheetUrl)}"
-      data-columns="${Number(animation.columns)}"
-      data-frames="${Number(animation.frameCount)}"
-      data-fps="${Number(animation.fps)}"
-      role="img" aria-label="Live animation preview of ${escapeHtml(character.name)}"></canvas>
-    <button class="preview-toggle" type="button" data-character="${escapeHtml(character.name)}"
-      aria-label="Pause ${escapeHtml(character.name)} animation" aria-pressed="false">Pause</button>
+    <div class="device-shell">
+      <div class="device-shell__top" aria-hidden="true">
+        <span class="device-camera"></span>
+        <span class="device-speaker"></span>
+      </div>
+      <div class="device-screen">
+        <img class="device-fallback" src="${escapeHtml(character.previewUrl)}" alt="" loading="lazy">
+        <canvas class="device-animation"
+          width="${Number(animation.frameWidth)}" height="${Number(animation.frameHeight)}"
+          data-sheet="${escapeHtml(animation.sheetUrl)}"
+          data-columns="${Number(animation.columns)}"
+          data-frames="${Number(animation.frameCount)}"
+          data-fps="${Number(animation.fps)}"
+          role="img" aria-label="${escapeHtml(character.name)} animated at native device resolution"></canvas>
+      </div>
+      <div class="device-shell__footer">
+        <span>${escapeHtml(character.name)} · ${Number(animation.frameWidth)} × ${Number(animation.frameHeight)} · ${Number(animation.fps)} FPS</span>
+        <button class="device-toggle" type="button" data-character="${escapeHtml(character.name)}"
+          aria-label="Pause ${escapeHtml(character.name)} animation" aria-pressed="false">Pause</button>
+      </div>
+    </div>
   `;
 };
 
-function initializeAnimations() {
+function initializeAnimations(root = document) {
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  document.querySelectorAll('.character-animation').forEach(canvas => {
-    const preview = canvas.closest('.preview-wrap');
-    const button = preview.querySelector('.preview-toggle');
+  root.querySelectorAll('.device-animation').forEach(canvas => {
+    const screen = canvas.closest('.device-screen');
+    const shell = canvas.closest('.device-shell');
+    const button = shell.querySelector('.device-toggle');
     const context = canvas.getContext('2d');
     const image = new Image();
     const columns = Number(canvas.dataset.columns);
@@ -83,10 +97,10 @@ function initializeAnimations() {
       visible = entries[0].isIntersecting;
       if (visible) start(); else stop();
     }, { threshold: 0.1 });
-    observer.observe(preview);
+    observer.observe(shell);
     image.addEventListener('load', () => {
       draw();
-      preview.classList.add('is-ready');
+      screen.classList.add('is-ready');
       updateButton();
       start();
     });
@@ -100,6 +114,7 @@ function initializeAnimations() {
 
 async function loadCharacters() {
   const container = document.getElementById('characters');
+  const devicePreview = document.getElementById('device-preview');
   try {
     const response = await fetch('catalog.json');
     if (!response.ok) throw new Error(`Catalog returned ${response.status}`);
@@ -128,10 +143,17 @@ async function loadCharacters() {
         </div>
       </article>
     `).join('');
-    initializeAnimations();
+    const animatedCharacter = catalog.characters.find(character => character.animation);
+    if (animatedCharacter) {
+      devicePreview.innerHTML = devicePreviewMarkup(animatedCharacter);
+      initializeAnimations(devicePreview);
+    } else {
+      devicePreview.innerHTML = '<p class="error">A live device preview is not available yet.</p>';
+    }
     document.title = 'Character Packs · Screw City Software';
   } catch (error) {
     container.innerHTML = '<p class="error">The character catalog could not be loaded. Downloads remain available from GitHub Releases.</p>';
+    devicePreview.innerHTML = '<p class="error">The live device preview could not be loaded.</p>';
     console.error(error);
   }
 }

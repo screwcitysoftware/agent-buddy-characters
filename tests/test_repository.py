@@ -40,7 +40,7 @@ class RepositoryTests(unittest.TestCase):
             if record["id"] == "scout":
                 animation = record["animation"]
                 self.assertEqual(animation["frameCount"], 20)
-                self.assertEqual((animation["frameWidth"], animation["frameHeight"]), (206, 176))
+                self.assertEqual((animation["frameWidth"], animation["frameHeight"]), (412, 352))
                 self.assertTrue((ROOT / "_site" / animation["sheetUrl"]).is_file())
 
     def test_public_site_links_attribution_and_uses_master_art(self):
@@ -57,11 +57,15 @@ class RepositoryTests(unittest.TestCase):
         css = (ROOT / "_site/styles.css").read_text(encoding="utf-8")
         self.assertIn("grid-template-columns: repeat(3, minmax(0, 1fr))", css)
         self.assertIn("grid-template-columns: repeat(2, minmax(0, 1fr))", css)
+        self.assertIn(".preview-wrap {", css)
+        self.assertIn("aspect-ratio: 1", css)
+        self.assertIn(".device-screen {", css)
         self.assertIn("aspect-ratio: 412 / 352", css)
         app = (ROOT / "_site/app.js").read_text(encoding="utf-8")
         self.assertIn("IntersectionObserver", app)
         self.assertIn("prefers-reduced-motion", app)
-        self.assertIn("preview-toggle", app)
+        self.assertIn("device-toggle", app)
+        self.assertNotIn("character-animation", app)
 
     def test_workflows_pin_actions_and_upstream(self):
         upstream = json.loads((ROOT / "UPSTREAM_AGENT_BUDDY.json").read_text(encoding="utf-8"))
@@ -76,6 +80,14 @@ class RepositoryTests(unittest.TestCase):
         self.assertIn("python scripts/release_plan.py", release)
         self.assertNotIn("workflow_dispatch", release)
         self.assertIn("if: always() && needs.pages.result == 'success'", release)
+
+    def test_character_creation_skill_is_discoverable(self):
+        skill = ROOT / ".agents/skills/create-agent-buddy-character"
+        instructions = (skill / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("name: create-agent-buddy-character", instructions)
+        self.assertIn("references/concept-art.md", instructions)
+        self.assertIn("references/repository-contract.md", instructions)
+        self.assertTrue((skill / "agents/openai.yaml").is_file())
 
 
 if __name__ == "__main__":

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Agent Buddy Character"
+  short_description: "Create and validate a new character pack"
+  default_prompt: "Use $create-agent-buddy-character to create a new character from concept art through a validated release-ready pack."

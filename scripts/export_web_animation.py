@@ -12,8 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 import sprite_codec
 
-FRAME_WIDTH = 206
-FRAME_HEIGHT = 176
+FRAME_WIDTH = 412
+FRAME_HEIGHT = 352
 COLUMNS = 5
 FPS = 8
 
@@ -50,22 +50,20 @@ def decode_frame(metadata: dict, data: bytes, frame: dict, blink: int = 0) -> by
     return bytes(canvas)
 
 
-def downsample_rgb565(raw: bytes, width: int, height: int) -> bytes:
-    if width != FRAME_WIDTH * 2 or height != FRAME_HEIGHT * 2:
-        raise ValueError(f"Web animation exporter expects {FRAME_WIDTH * 2}x{FRAME_HEIGHT * 2} frames")
+def rgb565_to_rgb888(raw: bytes, width: int, height: int) -> bytes:
+    if width != FRAME_WIDTH or height != FRAME_HEIGHT:
+        raise ValueError(f"Web animation exporter expects {FRAME_WIDTH}x{FRAME_HEIGHT} frames")
     output = bytearray(FRAME_WIDTH * FRAME_HEIGHT * 3)
     for y in range(FRAME_HEIGHT):
         for x in range(FRAME_WIDTH):
-            red = green = blue = 0
-            for dy in range(2):
-                for dx in range(2):
-                    index = (((y * 2 + dy) * width + x * 2 + dx) * 2)
-                    value = raw[index] << 8 | raw[index + 1]
-                    red += ((value >> 11) & 31) * 255 // 31
-                    green += ((value >> 5) & 63) * 255 // 63
-                    blue += (value & 31) * 255 // 31
+            index = (y * width + x) * 2
+            value = raw[index] << 8 | raw[index + 1]
             target = (y * FRAME_WIDTH + x) * 3
-            output[target:target + 3] = bytes((red // 4, green // 4, blue // 4))
+            output[target:target + 3] = bytes((
+                ((value >> 11) & 31) * 255 // 31,
+                ((value >> 5) & 63) * 255 // 63,
+                (value & 31) * 255 // 31,
+            ))
     return bytes(output)
 
 
@@ -83,7 +81,7 @@ def export(character_dir: Path, track: str, destination: Path) -> dict[str, int 
     sequence = [(frames[step], 0) for step in motion_steps]
     sequence.extend((frames[0], blink) for blink in (1, 2, 3, 4, 3, 2, 1))
     rendered = [
-        downsample_rgb565(decode_frame(metadata, data, frame, blink), metadata["width"], metadata["height"])
+        rgb565_to_rgb888(decode_frame(metadata, data, frame, blink), metadata["width"], metadata["height"])
         for frame, blink in sequence
     ]
     rows = (len(rendered) + COLUMNS - 1) // COLUMNS

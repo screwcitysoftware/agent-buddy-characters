@@ -65,6 +65,11 @@ these directories automatically, so new internally maintained characters do not
 require changes to the pack orchestrator. Build one character with
 `python scripts/build.py --character <id>`.
 
+To design and implement a new character, invoke the repo-local
+`$create-agent-buddy-character` skill. It covers concept-sheet and master-art
+generation, deterministic animation, packaging, gallery integration, and validation.
+The skill is stored under `.agents/skills/create-agent-buddy-character/`.
+
 The pinned upstream version and commit are recorded in
 [`UPSTREAM_AGENT_BUDDY.json`](UPSTREAM_AGENT_BUDDY.json). See
 [`docs/INVESTIGATION.md`](docs/INVESTIGATION.md) for the verified pack contract.
